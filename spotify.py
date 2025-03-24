@@ -1,5 +1,5 @@
 import pandas as pd
-import os
+
 
 # Define file paths
 main_data_path = 'data.csv'
@@ -7,10 +7,7 @@ genre_data_path = 'data_by_genres.csv'
 year_data_path = 'data_by_year.csv'
 artist_data_path = 'data_by_artist.csv'
 
-# Check if files exist before reading
-for path in [main_data_path, genre_data_path, year_data_path, artist_data_path]:
-    if not os.path.exists(path):
-        print(f"Error: File {path} not found!")
+
 
 # Read datasets
 data = pd.read_csv(main_data_path)
@@ -37,10 +34,13 @@ year_data.info()
 print("\n" + "="*40 + " ARTIST DATA INFO " + "="*40)
 artist_data.info()
 
-# Ensure 'year' is numeric and clean the data
-data['year'] = pd.to_numeric(data['year'], errors='coerce')  # Convert to numeric
-data.dropna(subset=['year'], inplace=True)  # Drop rows with NaN in 'year'
-data['year'] = data['year'].astype(int)  # Convert year to integer
+# Ensure 'year' is numeric and clean the data 
+# Convert to numeric
+data['year'] = pd.to_numeric(data['year'], errors='coerce') 
+ # Drop rows with NaN in 'year' 
+data.dropna(subset=['year'], inplace=True) 
+ # Convert year to integer
+data['year'] = data['year'].astype(int) 
 
 # Creating a Decade column
 data['decade'] = data['year'].apply(lambda x: (x // 10) * 10)
@@ -55,7 +55,7 @@ print(data.info())
 
 # Check unique decades
 print("\nUnique Decades:")
-print(data['decade'].unique())  # Corrected method call
+print(data['decade'].unique())  
 
 # Describe the statistics of the decade column
 print("\nDecade Column Statistics:")
