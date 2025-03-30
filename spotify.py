@@ -60,3 +60,13 @@ print(data['decade'].unique())
 # Describe the statistics of the decade column
 print("\nDecade Column Statistics:")
 print(data['decade'].describe())
+
+
+tables_with_decade = {name: df for name, df in 
+                      {'Main Data': data, 
+                       'Genre Data': genre_data, 
+                       'Year Data': year_data, 
+                       'Artist Data': artist_data}.items() 
+                      if 'decade' in df.columns}
+
+print("\nTables containing 'decade' column:", list(tables_with_decade.keys()))
