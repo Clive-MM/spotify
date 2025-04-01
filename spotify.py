@@ -156,9 +156,9 @@ st.plotly_chart(fig)
 
 # Get the top 10 genres based on popularity
 top10_genres = (
-    genre_data.groupby("genres", as_index=False)  # Group by genres
-    .mean(numeric_only=True)  # Compute mean for numeric columns
-    .sort_values(by="popularity", ascending=False)  # Sort by popularity (descending)
+    genre_data.groupby("genres", as_index=False)  
+    .mean(numeric_only=True)  
+    .sort_values(by="popularity", ascending=False)  
     .head(10)  # Get top 10 genres
 )
 
@@ -199,17 +199,42 @@ stopwords = set(STOPWORDS)
 
 # Generate the word cloud
 wordcloud = WordCloud(
-    width=800, height=800,  # Set the size of the image
-    background_color='white',  # Background color of the word cloud
-    stopwords=stopwords,  # Remove common words
-    max_words=40,  # Maximum words to display
-    min_font_size=10  # Minimum font size
+    width=800, height=800, 
+    background_color='white',  
+    stopwords=stopwords,  
+    max_words=40,  
+    min_font_size=10  
 ).generate(comment_words)
 
 # Display the word cloud in Streamlit
 st.subheader("🎨 Word Cloud of Music Genres")
-fig, ax = plt.subplots(figsize=(8, 8))  # Create figure
-ax.imshow(wordcloud, interpolation='bilinear')  # Display word cloud
-ax.axis("off")  # Hide axes
+fig, ax = plt.subplots(figsize=(8, 8))  
+ax.imshow(wordcloud, interpolation='bilinear')  
+ax.axis("off")  
 
-st.pyplot(fig)  # Render the plot in Streamlit
+st.pyplot(fig)  
+
+# Combine all artists into a single string for the word cloud
+comment_words = " ".join(artist_data["artists"].astype(str))
+
+# Define stopwords (common words to be ignored in visualization)
+stopwords = set(STOPWORDS)
+
+# Generate the word cloud of artists
+wordcloud = WordCloud(
+    width=800, 
+    height=800, 
+    background_color='white',  
+    stopwords=stopwords,  
+    min_word_length=3,  
+    max_words=40,  
+    min_font_size=10  
+).generate(comment_words)
+
+# Display the word cloud in Streamlit
+st.subheader("🎨 Word Cloud of Music Artists")
+fig, ax = plt.subplots(figsize=(8, 8))  
+ax.imshow(wordcloud, interpolation='bilinear')  
+ax.axis("off")  
+
+st.pyplot(fig)  
