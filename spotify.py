@@ -5,6 +5,7 @@ import streamlit as st
 import sys
 import io
 import plotly.express as px
+from wordcloud import WordCloud, STOPWORDS
 
 
 # Set Streamlit page title
@@ -189,3 +190,26 @@ fig.update_layout(
 
 # Display the plot in Streamlit
 st.plotly_chart(fig)
+
+# Combine all genres into a single string for the word cloud
+comment_words = " ".join(genre_data["genres"].astype(str))
+
+# Define stopwords (common words to be ignored in visualization)
+stopwords = set(STOPWORDS)
+
+# Generate the word cloud
+wordcloud = WordCloud(
+    width=800, height=800,  # Set the size of the image
+    background_color='white',  # Background color of the word cloud
+    stopwords=stopwords,  # Remove common words
+    max_words=40,  # Maximum words to display
+    min_font_size=10  # Minimum font size
+).generate(comment_words)
+
+# Display the word cloud in Streamlit
+st.subheader("🎨 Word Cloud of Music Genres")
+fig, ax = plt.subplots(figsize=(8, 8))  # Create figure
+ax.imshow(wordcloud, interpolation='bilinear')  # Display word cloud
+ax.axis("off")  # Hide axes
+
+st.pyplot(fig)  # Render the plot in Streamlit
