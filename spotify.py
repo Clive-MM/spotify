@@ -1,5 +1,13 @@
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import streamlit as st
+import sys
+import io
 
+
+# Set Streamlit page title
+st.title("Spotify Data Analysis")
 
 # Define file paths
 main_data_path = 'data.csv'
@@ -15,58 +23,88 @@ genre_data = pd.read_csv(genre_data_path)
 year_data = pd.read_csv(year_data_path)
 artist_data = pd.read_csv(artist_data_path)
 
-# Display the first two rows of each dataset
-print("\nMain Data:\n", data.head(2))
-print("\nGenre Data:\n", genre_data.head(2))
-print("\nYear Data:\n", year_data.head(2))
-print("\nArtist Data:\n", artist_data.head(2))
+# Display the first  rows of each dataset
+st.subheader("First Rows of Each Dataset")
 
-# Retrieve dataset info
-print("\n" + "="*40 + " MAIN DATA INFO " + "="*40)
-data.info()
+st.write("**Main Data:**")
+st.dataframe(data.head(10))
 
-print("\n" + "="*40 + " GENRE DATA INFO " + "="*40)
-genre_data.info()
+st.write("**Genre Data:**")
+st.dataframe(genre_data.head(10))
 
-print("\n" + "="*40 + " YEAR DATA INFO " + "="*40)
-year_data.info()
+st.write("**Year Data:**")
+st.dataframe(year_data.head(10))
 
-print("\n" + "="*40 + " ARTIST DATA INFO " + "="*40)
-artist_data.info()
+st.write("**Artist Data:**")
+st.dataframe(artist_data.head(10))
 
-# Ensure 'year' is numeric and clean the data 
-# Convert to numeric
-data['year'] = pd.to_numeric(data['year'], errors='coerce') 
- # Drop rows with NaN in 'year' 
-data.dropna(subset=['year'], inplace=True) 
- # Convert year to integer
-data['year'] = data['year'].astype(int) 
+# Function to capture and display DataFrame 
+def get_dataframe_info(df):
+    # Capture the output of df.info() method into a string buffer
+    buf = io.StringIO()
+    sys.stdout = buf
+    df.info()
+    sys.stdout = sys.__stdout__
+    return buf.getvalue()
 
-# Creating a Decade column
+# Display Dataset Info 
+st.subheader("Dataset Information")
+
+st.write("### Main Data Info")
+st.text(get_dataframe_info(data))
+
+st.write("### Genre Data Info")
+st.text(get_dataframe_info(genre_data))
+
+st.write("### Year Data Info")
+st.text(get_dataframe_info(year_data))
+
+st.write("### Artist Data Info")
+st.text(get_dataframe_info(artist_data))
+
+# Convert 'year' column to numeric and clean data
+data['year'] = pd.to_numeric(data['year'], errors='coerce')
+data.dropna(subset=['year'], inplace=True)
+data['year'] = data['year'].astype(int)
+
+# Create 'decade' column
 data['decade'] = data['year'].apply(lambda x: (x // 10) * 10)
 
-# Confirm the decade column has been created
-print("\nFirst 10 rows with Decade column:")
-print(data[['year', 'decade']].head(10))
 
-# Confirming column creation
-print("\nUpdated Data Info:")
-print(data.info())
+# Display the created 'decade' column
+st.write("### Decade Column Created Successfully")
 
-# Check unique decades
-print("\nUnique Decades:")
-print(data['decade'].unique())  
+# Show unique decades
+st.write("**Unique Decades:**")
+st.write(data['decade'].unique())
 
 # Describe the statistics of the decade column
-print("\nDecade Column Statistics:")
-print(data['decade'].describe())
+st.write("**Decade Column Statistics:**")
+st.write(data['decade'].describe())
 
+# Display the first 10 rows of the main data
+st.write("\n**First 10 rows of Main Data:**")
+st.write(data.head(10))
 
-tables_with_decade = {name: df for name, df in 
-                      {'Main Data': data, 
-                       'Genre Data': genre_data, 
-                       'Year Data': year_data, 
-                       'Artist Data': artist_data}.items() 
-                      if 'decade' in df.columns}
+# Visualize the distribution of tracks across different decades using a count plot
+st.subheader("Distribution of Tracks Across Decades")
 
-print("\nTables containing 'decade' column:", list(tables_with_decade.keys()))
+# Set figure size
+plt.figure(figsize=(12, 6))
+
+# Create count plot
+sns.countplot(
+    x=data['decade'], 
+    hue=data['decade'],  
+    palette='viridis', 
+    order=sorted(data['decade'].unique()),
+    legend=False  
+)
+
+# Set the title and labels for the plot
+plt.title("Number of Tracks per Decade", fontsize=14)
+plt.xlabel("Decade", fontsize=12)
+plt.ylabel("Number of Tracks", fontsize=12)
+
+# Display the plot in Streamlit
+st.pyplot(plt)
