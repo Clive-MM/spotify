@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import streamlit as st
 import sys
 import io
+import plotly.express as px
 
 
 # Set Streamlit page title
@@ -108,3 +109,83 @@ plt.ylabel("Number of Tracks", fontsize=12)
 
 # Display the plot in Streamlit
 st.pyplot(plt)
+
+# Convert 'year' to 'decade'
+year_data['decade'] = (year_data['year'] // 10) * 10
+
+# Define sound features
+sound_features = ['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'valence']
+
+# Streamlit Section for Trends Visualization
+st.subheader("Trends of Various Sound Features Over Decades")
+
+# Create line plot using Plotly Express
+fig = px.line(
+    year_data, 
+    x='decade',   
+    y=sound_features, 
+    title='Trend of Various Sound Features Over Decades'
+)
+
+# Display the plot in Streamlit
+st.plotly_chart(fig)
+
+# Streamlit Section for Loudness Trend
+st.subheader("Trend of Loudness Over Decades")
+
+# Create line plot using Plotly Express
+fig = px.line(
+    year_data, 
+    x='decade',   
+    y='loudness',  
+    title='📊 Evolution of Loudness in Music Over the Decades',
+    markers=True,  
+    template='plotly_dark'  
+)
+
+# Customize axis labels
+fig.update_layout(
+    xaxis_title="Decade",
+    yaxis_title="Average Loudness (dB)",  
+    font=dict(size=12),  
+)
+
+# Display the plot in Streamlit
+st.plotly_chart(fig)
+
+# Get the top 10 genres based on popularity
+top10_genres = (
+    genre_data.groupby("genres", as_index=False)  # Group by genres
+    .mean(numeric_only=True)  # Compute mean for numeric columns
+    .sort_values(by="popularity", ascending=False)  # Sort by popularity (descending)
+    .head(10)  # Get top 10 genres
+)
+
+# Display the top 10 genres with their popularity in Streamlit
+st.subheader("🎵 Top 10 Music Genres by Popularity")
+st.dataframe(top10_genres[["genres", "popularity"]])  # Show genres & popularity
+
+# Streamlit Section for the grouped bar chart
+st.subheader("📊 Trend of Various Sound Features Over Top 10 Genres")
+
+# Create a grouped bar chart
+fig = px.bar(
+    top10_genres,
+    x="genres",
+    y=["valence", "energy", "danceability", "acousticness"],
+    barmode="group",
+    title="Trend of Various Sound Features Over Top 10 Genres",
+    labels={"value": "Feature Value", "variable": "Sound Features"},
+    template="plotly_dark",
+)
+
+# Customize layout
+fig.update_layout(
+    xaxis_title="Music Genres",
+    yaxis_title="Average Feature Value",
+    legend_title="Sound Features",
+    font=dict(size=12),
+)
+
+# Display the plot in Streamlit
+st.plotly_chart(fig)
