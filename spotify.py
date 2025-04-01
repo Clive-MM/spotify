@@ -237,4 +237,18 @@ fig, ax = plt.subplots(figsize=(8, 8))
 ax.imshow(wordcloud, interpolation='bilinear')  
 ax.axis("off")  
 
-st.pyplot(fig)  
+# Check if 'artists' and 'popularity' columns exist
+if 'artists' not in artist_data.columns or 'popularity' not in artist_data.columns:
+    st.error("Error: 'artists' or 'popularity' column not found in the dataset.")
+else:
+    # Ensure 'popularity' is numeric for sorting and aggregation
+    artist_data['popularity'] = pd.to_numeric(artist_data['popularity'], errors='coerce')
+    artist_data = artist_data.dropna(subset=['popularity'])
+
+    # Sort the artists by popularity score and display the top 10
+    top10_popular_artists = artist_data[['popularity', 'artists']].sort_values('popularity', ascending=False).head(10)
+
+    # Display the results in the Streamlit app
+    st.subheader("Top 10 Artists by Popularity Score")
+    st.write("The following table shows the top 10 artists with the highest popularity scores.")
+    st.dataframe(top10_popular_artists)
