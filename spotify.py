@@ -8,6 +8,7 @@ import plotly.express as px
 from wordcloud import WordCloud, STOPWORDS
 
 
+
 # Set Streamlit page title
 st.title("Spotify Data Analysis")
 
@@ -254,3 +255,4 @@ else:
     st.subheader("Top 10 Artists by Popularity Score")
     st.write("The following table shows the top 10 artists with the highest popularity scores.")
     st.dataframe(top10_popular_artists)
+
