@@ -108,7 +108,7 @@ plt.title("Number of Tracks per Decade", fontsize=14)
 plt.xlabel("Decade", fontsize=12)
 plt.ylabel("Number of Tracks", fontsize=12)
 
-# Display the plot in Streamlit
+# Display the plot 
 st.pyplot(plt)
 
 # Convert 'year' to 'decade'
@@ -128,7 +128,7 @@ fig = px.line(
     title='Trend of Various Sound Features Over Decades'
 )
 
-# Display the plot in Streamlit
+# Display the plot 
 st.plotly_chart(fig)
 
 # Streamlit Section for Loudness Trend
@@ -162,9 +162,9 @@ top10_genres = (
     .head(10)  # Get top 10 genres
 )
 
-# Display the top 10 genres with their popularity in Streamlit
+# Display the top 10 genres with their popularity 
 st.subheader("🎵 Top 10 Music Genres by Popularity")
-st.dataframe(top10_genres[["genres", "popularity"]])  # Show genres & popularity
+st.dataframe(top10_genres[["genres", "popularity"]])  
 
 # Streamlit Section for the grouped bar chart
 st.subheader("📊 Trend of Various Sound Features Over Top 10 Genres")
@@ -206,7 +206,7 @@ wordcloud = WordCloud(
     min_font_size=10  
 ).generate(comment_words)
 
-# Display the word cloud in Streamlit
+# Display the word cloud 
 st.subheader("🎨 Word Cloud of Music Genres")
 fig, ax = plt.subplots(figsize=(8, 8))  
 ax.imshow(wordcloud, interpolation='bilinear')  
@@ -231,11 +231,13 @@ wordcloud = WordCloud(
     min_font_size=10  
 ).generate(comment_words)
 
-# Display the word cloud in Streamlit
+# Display the word cloud 
 st.subheader("🎨 Word Cloud of Music Artists")
 fig, ax = plt.subplots(figsize=(8, 8))  
 ax.imshow(wordcloud, interpolation='bilinear')  
 ax.axis("off")  
+
+st.pyplot(fig)
 
 # Check if 'artists' and 'popularity' columns exist
 if 'artists' not in artist_data.columns or 'popularity' not in artist_data.columns:
@@ -248,7 +250,7 @@ else:
     # Sort the artists by popularity score and display the top 10
     top10_popular_artists = artist_data[['popularity', 'artists']].sort_values('popularity', ascending=False).head(10)
 
-    # Display the results in the Streamlit app
+    # Display the results 
     st.subheader("Top 10 Artists by Popularity Score")
     st.write("The following table shows the top 10 artists with the highest popularity scores.")
     st.dataframe(top10_popular_artists)
