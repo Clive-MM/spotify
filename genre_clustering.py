@@ -5,7 +5,7 @@ import seaborn as sns
 import plotly.express as px
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
-from sklearn.manifold import TSNE  # For t-SNE
+from sklearn.manifold import TSNE  
 
 # Set Streamlit page title
 st.title("Spotify Genre Clustering with K-Means and t-SNE")
@@ -85,3 +85,27 @@ cluster_summary = df.groupby("Cluster").agg({
 }).reset_index()
 
 st.dataframe(cluster_summary)
+
+# --- Genres per cluster ---
+st.subheader("📜 Genres Grouped by Cluster")
+
+# Group genres by cluster
+genres_by_cluster = df.groupby('Cluster')['genres'].apply(list).reset_index(name='Genres')
+st.dataframe(genres_by_cluster)
+
+# --- Genre counts per cluster ---
+st.subheader("🔢 Genre Count per Cluster")
+
+# Count number of genres in each cluster
+genre_counts = df['Cluster'].value_counts().sort_index().reset_index()
+genre_counts.columns = ['Cluster', 'Genre Count']
+st.dataframe(genre_counts)
+
+# --- Most representative genre per cluster ---
+st.subheader("⭐ Most Representative Genre per Cluster")
+
+# Pick the first genre (or most frequent one if duplicates exist) in each cluster
+most_representative = df.groupby('Cluster')['genres'].agg(lambda x: x.mode().iloc[0] if not x.mode().empty else x.iloc[0]).reset_index()
+most_representative.columns = ['Cluster', 'Representative Genre']
+st.dataframe(most_representative)
+
