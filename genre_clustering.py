@@ -2,83 +2,86 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import plotly.express as px
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 from sklearn.manifold import TSNE  # For t-SNE
 
 # Set Streamlit page title
-st.title("Spotify Data Analysis")
+st.title("Spotify Genre Clustering with K-Means and t-SNE")
 
 # Load dataset
 genre_data_path = 'data_by_genres.csv'
 df = pd.read_csv(genre_data_path)
 
+try:
+    df = pd.read_csv(genre_data_path)
+    st.write("Genre data loaded successfully from CSV.")
+except FileNotFoundError:
+    st.error(f"Error: File '{genre_data_path}' not found.")
+    st.stop()
+
 # Display dataset preview
 st.subheader("🎵 Genre Data Preview")
 st.dataframe(df.head())
 
-# 1. Select Numerical Features
-numerical_features = df.select_dtypes(include=['number'])
+# Select numeric columns for clustering
+numeric_cols = df.select_dtypes(include=['number']).columns
+numeric_df = df[numeric_cols].dropna()
 
-# 2. Scale the Features
+# Standardize the numeric data
 scaler = StandardScaler()
-scaled_features = scaler.fit_transform(numerical_features)
+scaled_data = scaler.fit_transform(numeric_df)
 
-# 3. Fit the K-Means Model
-kmeans = KMeans(n_clusters=12, random_state=42)
-kmeans.fit(scaled_features)
+st.write("Data preprocessing completed. Standardized numerical features.")
 
-# 4. Assign Cluster Labels
-df['cluster'] = kmeans.labels_
+# Fit K-Means with 12 clusters
+kmeans = KMeans(n_clusters=12, random_state=42, n_init=10)
+df['Cluster'] = kmeans.fit_predict(scaled_data)
 
-# 5. t-SNE Dimensionality Reduction
-tsne = TSNE(n_components=2, random_state=42)
-tsne_results = tsne.fit_transform(scaled_features)
+st.write("K-Means clustering applied. 12 clusters assigned.")
 
-# Add t-SNE results to DataFrame
-df['tsne_1'] = tsne_results[:, 0]
-df['tsne_2'] = tsne_results[:, 1]
+# Apply t-SNE to reduce to 2D for visualization
+tsne = TSNE(n_components=2, perplexity=10, random_state=42)
+tsne_data = tsne.fit_transform(scaled_data)
 
-# 6. Visualize Clusters with t-SNE
-st.subheader("Genre Clusters Visualization (t-SNE)")
+# Store t-SNE results in DataFrame
+df['TSNE1'] = tsne_data[:, 0]
+df['TSNE2'] = tsne_data[:, 1]
 
-fig, ax = plt.subplots(figsize=(10, 8))
-scatter = ax.scatter(
-    x='tsne_1',
-    y='tsne_2',
-    c='cluster',  # Color by cluster
-    data=df,
-    cmap='Set3'  
-)
+st.write("t-SNE applied: Data reduced to 2D for visualization.")
 
-# Add hover annotations
-annot = ax.annotate("", xy=(0, 0), xytext=(20, 20), textcoords="offset points",
-                    bbox=dict(boxstyle="round", fc="white"),
-                    arrowprops=dict(arrowstyle="->"))
-annot.set_visible(False)
+# Matplotlib scatter plot
+st.subheader("🎨 Clustering Visualization (Matplotlib)")
 
-def update_annot(ind):
-    x, y = scatter.get_offsets()[ind["ind"][0]]
-    annot.xy = (x, y)
-    genre = df['genres'][ind["ind"][0]]
-    cluster = df['cluster'][ind["ind"][0]]
-    text = f"Genre: {genre}\nCluster: {cluster}"
-    annot.set_text(text)
-    annot.get_bbox_patch().set_alpha(0.4)
+fig, ax = plt.subplots(figsize=(10, 6))
+sns.scatterplot(x=df["TSNE1"], y=df["TSNE2"], hue=df["Cluster"], palette="tab10", s=50, alpha=0.8)
+plt.xlabel("t-SNE Component 1")
+plt.ylabel("t-SNE Component 2")
+plt.title("K-Means Clustering of Genres (t-SNE Reduced)")
+plt.legend(title="Cluster")
 
-def hover(event):
-    vis = annot.get_visible()
-    if event.inaxes == ax:
-        cont, ind = scatter.contains(event)
-        if cont:
-            update_annot(ind)
-            annot.set_visible(True)
-            fig.canvas.draw_idle()
-        else:
-            if vis:
-                annot.set_visible(False)
-                fig.canvas.draw_idle()
-
-fig.canvas.mpl_connect("motion_notify_event", hover)
-
+# Show plot in Streamlit
 st.pyplot(fig)
+
+# Plotly Interactive Scatter Plot
+st.subheader("🎨 Interactive Clustering Visualization (Plotly)")
+
+fig = px.scatter(df, x="TSNE1", y="TSNE2", color=df["Cluster"].astype(str),
+                 hover_data=["genres"] if "genres" in df.columns else None,
+                 title="K-Means Clustering of Genres (t-SNE Reduced)")
+
+# Show interactive plot
+st.plotly_chart(fig)
+
+# Display cluster summary
+st.subheader("🔍 Cluster Analysis Summary")
+cluster_summary = df.groupby("Cluster").agg({
+    "popularity": "mean",
+    "energy": "mean",
+    "danceability": "mean",
+    "acousticness": "mean",
+    "valence": "mean"
+}).reset_index()
+
+st.dataframe(cluster_summary)
