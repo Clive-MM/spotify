@@ -28,6 +28,8 @@ st.dataframe(df.head())
 numeric_cols = df.select_dtypes(include=['number']).columns
 numeric_df = df[numeric_cols].dropna()
 
+import plotly.express as px
+
 # Standardize the numeric data
 scaler = StandardScaler()
 scaled_data = scaler.fit_transform(numeric_df)
@@ -38,40 +40,76 @@ st.write("Data preprocessing completed. Standardized numerical features.")
 kmeans = KMeans(n_clusters=25, random_state=42, n_init=10)
 df['Cluster'] = kmeans.fit_predict(scaled_data)
 
-st.write("K-Means clustering applied. 25 clusters assigned.")
-
+st.write("K-Means clustering applied. 25 clusters assigned to songs.")
 
 # Apply PCA to reduce to 2D for visualization
 pca = PCA(n_components=2)
-pca_data = pca.fit_transform(scaled_data)
-
-# Store PCA results in DataFrame
-df['PCA1'] = pca_data[:, 0]
-df['PCA2'] = pca_data[:, 1]
+pca_result = pca.fit_transform(scaled_data)
+df['PCA1'] = pca_result[:, 0]
+df['PCA2'] = pca_result[:, 1]
 
 st.write("PCA applied: Data reduced to 2D for visualization.")
 
-# Create a scatter plot with seaborn
-st.subheader("🎨 Clustering Visualization")
+# Visualize clusters with Plotly
+st.subheader("🎨 Interactive Clustering Visualization")
 
-fig, ax = plt.subplots(figsize=(10, 6))
-sns.scatterplot(x=df["PCA1"], y=df["PCA2"], hue=df["Cluster"], palette="tab10", s=50, alpha=0.8)
-plt.xlabel("PCA Component 1")
-plt.ylabel("PCA Component 2")
-plt.title("K-Means Clustering of Songs (PCA Reduced)")
-plt.legend(title="Cluster")
-
-# Show plot in Streamlit
-st.pyplot(fig)
-
-import plotly.express as px
+# Ensure relevant song info is present for hover
+hover_columns = []
+if 'name' in df.columns:
+    hover_columns.append('name')
+if 'artists' in df.columns:
+    hover_columns.append('artists')
+if 'release_date' in df.columns:
+    hover_columns.append('release_date')
+if 'popularity' in df.columns:
+    hover_columns.append('popularity')
 
 # Create interactive scatter plot
-fig = px.scatter(df, x="PCA1", y="PCA2", color=df["Cluster"].astype(str),
-                 hover_data=["song_name", "artist_name"] if "song_name" in df.columns else None,
-                 title="K-Means Clustering of Songs (PCA Reduced)")
+fig = px.scatter(
+    df,
+    x="PCA1",
+    y="PCA2",
+    color=df["Cluster"].astype(str),
+    hover_data=hover_columns,
+    title="🎵 Song Clusters (25 Clusters) using PCA"
+)
 
-# Show interactive plot
 st.plotly_chart(fig)
+
+# Optional: show cluster summaries
+st.subheader("📊 Cluster Summary")
+cluster_summary = df.groupby("Cluster").agg({
+    "popularity": "mean",
+    "energy": "mean" if "energy" in df.columns else "mean",
+    "danceability": "mean" if "danceability" in df.columns else "mean",
+    "acousticness": "mean" if "acousticness" in df.columns else "mean",
+    "valence": "mean" if "valence" in df.columns else "mean"
+}).reset_index()
+
+st.dataframe(cluster_summary)
+
+# --- 🎯 Song Recommendation System ---
+st.subheader("🎧 Get Song Recommendations")
+
+# Let user enter a song name
+song_name_input = st.text_input("Enter a song name to get similar recommendations:")
+
+if song_name_input:
+    # Search for the song (case-insensitive)
+    matched_song = df[df['name'].str.lower() == song_name_input.lower()]
+    
+    if matched_song.empty:
+        st.warning("Song not found. Please check the spelling or try another.")
+    else:
+        # Get cluster of the selected song
+        selected_cluster = matched_song['Cluster'].values[0]
+
+        # Recommend other songs from the same cluster (excluding the selected song)
+        recommendations = df[(df['Cluster'] == selected_cluster) & (df['name'].str.lower() != song_name_input.lower())]
+
+        # Display top 10 recommendations
+        st.success(f"Showing songs from the same cluster as '{song_name_input}':")
+        st.dataframe(recommendations[['name', 'artists', 'release_date', 'popularity']].head(10))
+
 
 
